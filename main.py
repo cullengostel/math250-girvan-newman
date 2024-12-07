@@ -1,10 +1,9 @@
-import numpy
 import matplotlib.pyplot as plt
 import networkx as nx
 import community
 import time
 
-def girvan_newman(graph, degree_threshold=6):
+def girvan_newman(graph, k_val, degree_threshold=0):
     """Perform the Girvan-Newman algorithm to find community structure."""
     start_time = time.time()
     
@@ -12,12 +11,11 @@ def girvan_newman(graph, degree_threshold=6):
     nodes_to_remove = [node for node, degree in graph.degree() if degree < degree_threshold]
     graph.remove_nodes_from(nodes_to_remove)
     
-    steps = 1
-    while graph.number_of_edges() > 0 and steps < 20:
+    while graph.number_of_edges() > 0:
         # Step 1: Find the edge with the highest betweenness centrality
-        edge_betweenness = nx.edge_betweenness_centrality(graph, normalized=True, k=200)
+        edge_betweenness = nx.edge_betweenness_centrality(graph, k=k_val)
         max_edge = max(edge_betweenness, key=edge_betweenness.get)
-
+        
         # Step 2: Remove the edge
         graph.remove_edge(*max_edge)
 
@@ -26,16 +24,14 @@ def girvan_newman(graph, degree_threshold=6):
         if len(components) > 1:
             end_time = time.time()
             elapsed_time = end_time - start_time
-            print(f"Steps through algorithm: {steps}")
             print(f"Time elapsed: {elapsed_time:.6f}")
             return components  # Found communities
-        
-        steps += 1
     
     end_time = time.time()
     elapsed_time = end_time - start_time
-    print(f"Steps through algorithm: {steps}")
+
     print(f"Time elapsed: {elapsed_time:.6f}")
+    
     return [list(graph.nodes())]  # Return the whole graph as one community
 
 
@@ -53,11 +49,16 @@ with open(file_path, 'r') as f:
         if len(edge) == 2:  # Ensure there are two elements
             G.add_edge(int(edge[0]), int(edge[1]))  # Convert to integers and add the edge
 
+k_value = 5
+degree = 30
+
 print("Pre-processed:")
 print("Number of nodes:", G.number_of_nodes())
 print("Number of edges:", G.number_of_edges())
+print(f"k value: {k_value}")
+print(f"degree threshold: {degree}")
 
-communities = girvan_newman(G)
+communities = girvan_newman(G, k_value, degree)
 
 print("\nPost-processed:")
 print("Number of nodes:", G.number_of_nodes())
